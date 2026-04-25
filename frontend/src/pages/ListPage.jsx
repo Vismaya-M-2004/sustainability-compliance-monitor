@@ -7,28 +7,85 @@ function ListPage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // FETCH DATA (fixed version)
   useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true);
+    let ignore = false;
 
-    try {
-      const url = query
-        ? `/api/search?q=${query}`
-        : status
-        ? `/api/status/${status}`
-        : "/api/all";
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-      const res = await API.get(url);
-      setData(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+        const url = query
+          ? `/api/search?q=${query}`
+          : status
+          ? `/api/status/${status}`
+          : "/api/all";
+
+        const res = await API.get(url);
+
+        if (!ignore) {
+          setData(res.data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      ignore = true;
+    };
+  }, [status, query]);
+
+  // DELETE
+  const handleDelete = (id) => {
+    if (!window.confirm("Delete this record?")) return;
+
+    API.delete(`/api/${id}`)
+      .then(() => {
+        alert("Deleted!");
+        // reload data
+        setData((prev) => prev.filter((item) => item.id !== id));
+      })
+      .catch((err) => console.error(err));
   };
 
-  fetchData();
-}, [status, query]);
+  // EDIT
+  const handleEdit = (item) => {
+    const newName = prompt("Company Name:", item.companyName);
+    if (!newName) return;
+
+    const newScore = prompt("Score:", item.complianceScore);
+    const newStatus = prompt(
+      "Status (COMPLIANT/NON-COMPLIANT):",
+      item.status
+    );
+
+    const payload = {
+      companyName: newName,
+      complianceScore: newScore ? Number(newScore) : null,
+      status: newStatus,
+      description: item.description,
+    };
+
+    API.put(`/api/${item.id}`, payload)
+      .then(() => {
+        alert("Updated!");
+        // reload data
+        setData((prev) =>
+          prev.map((it) =>
+            it.id === item.id ? { ...it, ...payload } : it
+          )
+        );
+      })
+      .catch((err) => console.error(err));
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Compliance Records</h1>
@@ -63,15 +120,35 @@ function ListPage() {
               <th className="border px-4">Company</th>
               <th className="border px-4">Score</th>
               <th className="border px-4">Status</th>
+              <th className="border px-4">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {data.map((item) => (
               <tr key={item.id}>
                 <td className="border px-4">{item.id}</td>
                 <td className="border px-4">{item.companyName}</td>
-                <td className="border px-4">{item.complianceScore}</td>
+                <td className="border px-4">
+                  {item.complianceScore}
+                </td>
                 <td className="border px-4">{item.status}</td>
+
+                <td className="border px-4 space-x-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="bg-yellow-500 text-white px-2 py-1"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="bg-red-500 text-white px-2 py-1"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
