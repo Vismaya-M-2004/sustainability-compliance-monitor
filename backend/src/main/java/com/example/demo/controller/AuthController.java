@@ -17,7 +17,9 @@ public class AuthController {
         String password = request.get("password");
 
         // SIMPLE CHECK (no DB yet)
-        if ("admin".equals(username) && "admin".equals(password)) {
+        if (
+        ("admin".equals(username) && "admin".equals(password))
+        ) {
         String token = JwtUtil.generateToken(username);
         return Map.of("token", token);
     }

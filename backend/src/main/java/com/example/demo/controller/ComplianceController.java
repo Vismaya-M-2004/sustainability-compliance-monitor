@@ -2,7 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.ComplianceRecord;
 import com.example.demo.repository.ComplianceRepository;
-import jakarta.validation.Valid;
+import com.example.demo.service.AuditService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,47 +14,70 @@ import java.util.List;
 @CrossOrigin
 public class ComplianceController {
 
-    private final ComplianceRepository repo;
+    @Autowired
+    private ComplianceRepository repository;
 
-    public ComplianceController(ComplianceRepository repo) {
-        this.repo = repo;
-    }
+    @Autowired
+    private AuditService auditService;
 
+    // 🔹 GET ALL
     @GetMapping("/all")
     public List<ComplianceRecord> getAll() {
-        return repo.findAll();
+        return repository.findAll();
     }
 
-    @GetMapping("/status/{status}")
-    public List<ComplianceRecord> getByStatus(@PathVariable String status) {
-        return repo.findByStatus(status);
+    // 🔹 GET BY ID (🔥 THIS FIXES YOUR ISSUE)
+    @GetMapping("/{id}")
+    public ComplianceRecord getById(@PathVariable Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Record not found"));
     }
 
+    // 🔹 CREATE
     @PostMapping("/create")
-    public ComplianceRecord create(@Valid @RequestBody ComplianceRecord record) {
-        return repo.save(record);
+    public ComplianceRecord create(@RequestBody ComplianceRecord record) {
+
+        System.out.println("CREATE API HIT");
+
+        ComplianceRecord saved = repository.save(record);
+
+        return saved;
     }
 
+    // 🔹 UPDATE
     @PutMapping("/{id}")
-    public ComplianceRecord update(@PathVariable Long id,
-                                   @Valid @RequestBody ComplianceRecord updated) {
-        ComplianceRecord record = repo.findById(id).orElseThrow();
+    public ComplianceRecord update(@PathVariable Long id, @RequestBody ComplianceRecord updated) {
 
-        record.setCompanyName(updated.getCompanyName());
-        record.setComplianceScore(updated.getComplianceScore());
-        record.setStatus(updated.getStatus());
-        record.setDescription(updated.getDescription());
+        ComplianceRecord existing = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Record not found"));
 
-        return repo.save(record);
+        existing.setCompanyName(updated.getCompanyName());
+        existing.setComplianceScore(updated.getComplianceScore());
+        existing.setStatus(updated.getStatus());
+        existing.setDescription(updated.getDescription());
+
+        ComplianceRecord saved = repository.save(existing);
+
+        return saved;
     }
 
+    // 🔹 DELETE
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        repo.deleteById(id);
+
+        repository.deleteById(id);
+
     }
 
+    // 🔹 SEARCH
     @GetMapping("/search")
     public List<ComplianceRecord> search(@RequestParam String q) {
-        return repo.findByCompanyNameContainingIgnoreCase(q);
+        return repository.findByCompanyNameContainingIgnoreCase(q);
+    }
+
+    // 🔹 FILTER
+    @GetMapping("/status/{status}")
+    public List<ComplianceRecord> filterByStatus(@PathVariable String status) {
+        return repository.findByStatus(status);
     }
 }

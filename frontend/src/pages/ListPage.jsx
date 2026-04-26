@@ -5,8 +5,19 @@ function ListPage() {
   const [data, setData] = useState([]);
   const [status, setStatus] = useState("");
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // 🔹 DEBOUNCE (wait 500ms after typing)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // 🔹 FETCH DATA
   useEffect(() => {
     let ignore = false;
 
@@ -14,8 +25,8 @@ function ListPage() {
       try {
         setLoading(true);
 
-        const url = query
-          ? `/api/search?q=${query}`
+        const url = debouncedQuery
+          ? `/api/search?q=${debouncedQuery}`
           : status
           ? `/api/status/${status}`
           : "/api/all";
@@ -39,8 +50,9 @@ function ListPage() {
     return () => {
       ignore = true;
     };
-  }, [status, query]);
+  }, [status, debouncedQuery]);
 
+  // 🔹 DELETE
   const handleDelete = (id) => {
     if (!window.confirm("Delete this record?")) return;
 
@@ -52,6 +64,7 @@ function ListPage() {
       .catch((err) => console.error(err));
   };
 
+  // 🔹 EDIT
   const handleEdit = (item) => {
     const newName = prompt("Company Name:", item.companyName);
     if (!newName) return;
@@ -83,9 +96,19 @@ function ListPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Compliance Records</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Compliance Records
+      </h1>
 
-      {/* ✅ ADD BUTTON (FIXED POSITION) */}
+      {/* 🔹 DASHBOARD BUTTON */}
+      <button
+        onClick={() => (window.location.href = "/dashboard")}
+        className="bg-gray-800 text-white px-3 py-2 mb-4 mr-2"
+      >
+        Dashboard
+      </button>
+
+      {/* 🔹 ADD BUTTON */}
       <button
         onClick={() => (window.location.href = "/add")}
         className="bg-blue-500 text-white px-3 py-2 mb-4"
@@ -93,24 +116,32 @@ function ListPage() {
         Add Record
       </button>
 
-      {/* SEARCH */}
+      {/* 🔹 SEARCH */}
       <input
-        placeholder="Search..."
+        placeholder="Search companies..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="border p-2 mb-4"
+        className="border p-2 mb-4 block"
       />
 
-      {/* FILTER */}
+      {/* 🔹 TYPING INDICATOR */}
+      {query !== debouncedQuery && (
+        <p className="text-sm text-gray-500 mb-2">Typing...</p>
+      )}
+
+      {/* 🔹 FILTER */}
       <select
         onChange={(e) => setStatus(e.target.value)}
         className="mb-4 border p-2"
       >
         <option value="">All</option>
         <option value="COMPLIANT">Compliant</option>
-        <option value="NON-COMPLIANT">Non-Compliant</option>
+        <option value="NON-COMPLIANT">
+          Non-Compliant
+        </option>
       </select>
 
+      {/* 🔹 TABLE */}
       {loading ? (
         <p>Loading...</p>
       ) : data.length === 0 ? (
@@ -129,22 +160,40 @@ function ListPage() {
 
           <tbody>
             {data.map((item) => (
-              <tr key={item.id}>
+              <tr
+                key={item.id}
+                onClick={() =>
+                  (window.location.href = `/details/${item.id}`)
+                }
+                className="cursor-pointer hover:bg-gray-100"
+              >
                 <td className="border px-4">{item.id}</td>
-                <td className="border px-4">{item.companyName}</td>
-                <td className="border px-4">{item.complianceScore}</td>
-                <td className="border px-4">{item.status}</td>
+                <td className="border px-4">
+                  {item.companyName}
+                </td>
+                <td className="border px-4">
+                  {item.complianceScore}
+                </td>
+                <td className="border px-4">
+                  {item.status}
+                </td>
 
                 <td className="border px-4 space-x-2">
                   <button
-                    onClick={() => handleEdit(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(item);
+                    }}
                     className="bg-yellow-500 text-white px-2 py-1"
                   >
                     Edit
                   </button>
 
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(item.id);
+                    }}
                     className="bg-red-500 text-white px-2 py-1"
                   >
                     Delete
