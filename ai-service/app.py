@@ -1,23 +1,24 @@
 from flask import Flask
+from dotenv import load_dotenv
 
-# IMPORT BLUEPRINTS
-from routes.describe import describe_bp
-from routes.recommend import recommend_bp
-from routes.report_routes import report_bp
+# Load env FIRST
+load_dotenv()
 
-# CREATE APP FIRST
+# Create app BEFORE using it
 app = Flask(__name__)
 
-# REGISTER BLUEPRINTS AFTER app is created
+# Import routes AFTER app creation
+from routes.describe import describe_bp
+from routes.recommend import recommend_bp
+from routes.generate_report import report_bp
+from routes.health import health_bp
+
+# Register blueprints
 app.register_blueprint(describe_bp)
 app.register_blueprint(recommend_bp)
 app.register_blueprint(report_bp)
+app.register_blueprint(health_bp)
 
-# OPTIONAL: health check
-@app.route('/health')
-def health():
-    return {"status": "ok"}
-
-# RUN APP
+# Run app
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
