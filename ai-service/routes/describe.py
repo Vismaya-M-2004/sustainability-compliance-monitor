@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.groq_client import generate_response
+from services.groq_client import call_groq
 from datetime import datetime
 import os
 import json
@@ -31,7 +31,7 @@ def describe():
         final_prompt = template.replace("{input_text}", input_text)
 
         # STEP 4: CALL GROQ
-        response = generate_response(final_prompt)
+        response = call_groq(prompt)
 
         # STEP 5: FALLBACK
         if response is None:

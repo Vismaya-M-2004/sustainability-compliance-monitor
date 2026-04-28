@@ -1,19 +1,23 @@
-from groq import Groq
 from dotenv import load_dotenv
 import os
+from groq import Groq
 
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def generate_response(prompt):
+def call_groq(prompt):
     try:
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
             temperature=0.3
         )
-        return response.choices[0].message.content
+
+        return completion.choices[0].message.content
+
     except Exception as e:
-        print("Groq Error:", str(e))
+        print("Groq Error:", e)
         return None

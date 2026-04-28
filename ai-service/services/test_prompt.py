@@ -1,5 +1,5 @@
 import os
-from groq_client import generate_response
+from groq_client import call_groq
 
 # Get project root (ai-service)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,7 +20,7 @@ input_text = "Company using renewable energy to reduce carbon emissions"
 prompt = template.replace("{input_text}", input_text)
 
 # Call Groq
-response = generate_response(prompt)
+response = call_groq(prompt)
 
 print("\n=== AI RESPONSE ===\n")
 print(response)

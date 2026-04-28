@@ -1,7 +1,6 @@
 import json
 import os
-from services.groq_client import generate_response
-
+from services.groq_client import call_groq
 
 def generate_recommendations(input_text):
     try:
@@ -13,7 +12,7 @@ def generate_recommendations(input_text):
 
         final_prompt = prompt_template.replace("{input_text}", input_text)
 
-        response = generate_response(final_prompt)
+        response = call_groq(final_prompt)
 
         if response is None:
             return [{
