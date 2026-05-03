@@ -1,7 +1,8 @@
 package com.internship.tool.controller;
 
-import com.internship.tool.entity.User;
+import com.internship.tool.model.User;
 import com.internship.tool.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,27 +21,24 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    // POST new user
+    // POST create user
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userRepository.save(user);
     }
 
-    // UPDATE user
+    // PUT update user
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public User updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
         User user = userRepository.findById(id).orElseThrow();
-
-        user.setName(userDetails.getName());
-        user.setEmail(userDetails.getEmail());
-
+        user.setName(updatedUser.getName());
+        user.setEmail(updatedUser.getEmail());
         return userRepository.save(user);
     }
 
     // DELETE user
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable Long id) {
+    public void deleteUser(@PathVariable Long id) {
         userRepository.deleteById(id);
-        return "User deleted successfully";
     }
 }
