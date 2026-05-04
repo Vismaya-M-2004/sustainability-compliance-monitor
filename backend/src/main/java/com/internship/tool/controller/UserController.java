@@ -1,6 +1,6 @@
 package com.internship.tool.controller;
 
-import com.internship.tool.model.User;
+import com.internship.tool.entity.User;
 import com.internship.tool.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
